@@ -33,7 +33,7 @@
   "homepage": "https://github.com/MRazvan/lib-intercept#readme",
   "dependencies": {
     "inversify": "^5.0.1",
-    "lib-reflect": "^1.0.1",
+    "lib-reflect": "^1.1.0",
     "lodash": "^4.17.15"
   },
   "devDependencies": {

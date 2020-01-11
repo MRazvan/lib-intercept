@@ -1,11 +1,11 @@
-import { AnyDecoratorFactory, ClassData, MethodData } from 'lib-reflect';
+import { AnyDecoratorFactory, checkIfInstanceOf, ClassData, MethodData } from 'lib-reflect';
 import { isFunction, isNil } from 'lodash';
 import { IAfterActivation } from './interfaces/i.after.activation';
 import { IBeforeActivation } from './interfaces/i.before.activation';
 
 export enum InterceptorType {
   Before = 0x01,
-  After  = 0x02
+  After = 0x02
 }
 
 export class InterceptorData {
@@ -24,7 +24,10 @@ export class InterceptorData {
   }
 }
 
-export const UseActivation = (activation: Function | IAfterActivation | IBeforeActivation, type?: InterceptorType): any =>
+export const UseActivation = (
+  activation: Function | IAfterActivation | IBeforeActivation,
+  type?: InterceptorType
+): any =>
   AnyDecoratorFactory((classData: ClassData, methodOrProp: any) => {
     const data = new InterceptorData();
     data.target = activation;
@@ -33,8 +36,8 @@ export const UseActivation = (activation: Function | IAfterActivation | IBeforeA
     }
     if (isNil(methodOrProp)) {
       // Class decorator
-      classData.attributeData.push(data);
-    } else if (methodOrProp instanceof MethodData) {
+      classData.attributesData.push(data);
+    } else if (checkIfInstanceOf(methodOrProp, MethodData)) {
       // Method decorator
       methodOrProp.attributesData.push(data);
     } else {
@@ -42,5 +45,7 @@ export const UseActivation = (activation: Function | IAfterActivation | IBeforeA
     }
   });
 
-export const UseBefore = (activation: Function | IBeforeActivation): any => UseActivation(activation, InterceptorType.Before);
-export const UseAfter = (activation: Function | IAfterActivation): any => UseActivation(activation, InterceptorType.After);
+export const UseBefore = (activation: Function | IBeforeActivation): any =>
+  UseActivation(activation, InterceptorType.Before);
+export const UseAfter = (activation: Function | IAfterActivation): any =>
+  UseActivation(activation, InterceptorType.After);
