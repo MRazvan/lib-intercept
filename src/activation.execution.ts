@@ -23,10 +23,7 @@ export class Activation implements IActivation {
   public beforeActivation: IBeforeActivation[];
   public afterActivation: IAfterActivation[];
 
-  public async execute(
-    ctx: IContext,
-    onError?: ErrorCallback
-  ): Promise<any> {
+  public async execute(ctx: IContext, onError?: ErrorCallback): Promise<any> {
     // Allow the arguments to be set outside of any interceptor
     //    For example set them before we call execute. This is so we can use
     //    the activation outside of an environment using activation chains
