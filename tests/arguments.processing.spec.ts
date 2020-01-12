@@ -42,7 +42,7 @@ describe('Activations should be able to populate argumets', () => {
       let container: Container = new Container();
       activations.addActivations(ArgsInterceptor_1);
       activations.register(TestClass);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const result = context.getResult().payload;
@@ -56,7 +56,7 @@ describe('Activations should be able to populate argumets', () => {
       activations.addActivations(ArgsInterceptor_1);
       activations.addActivations(ArgsInterceptor_2);
       activations.register(TestClassTwoArgs);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const result = context.getResult().payload;

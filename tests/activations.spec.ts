@@ -67,7 +67,7 @@ describe('ActivationsGenerator', () => {
       let container: Container = new Container();
 
       activations.register(ThrowOnCall);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = activations.generateActivations(container)[1];
 
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);

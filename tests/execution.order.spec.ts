@@ -136,7 +136,9 @@ class TestRemoveAfterInterceptor {
 }
 
 describe('Order of activations', () => {
-
+   function getMethod(activations: IActivation[], mName: string): IActivation {
+      return activations.find(a => a.method.name === mName);
+   }
    it('Global activations should be called in the order of addition', async () => {
       const activations: ActivationsGenerator = new ActivationsGenerator();
       let methodAction: IActivation = null;
@@ -144,7 +146,7 @@ describe('Order of activations', () => {
       activations.addActivations(BeforeInterceptor_1);
       activations.addActivations(BeforeInterceptor_2);
       activations.register(TestClass);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -158,7 +160,7 @@ describe('Order of activations', () => {
       activations.addActivations(BeforeInterceptor_1);
       activations.addActivations(BeforeInterceptor_2);
       activations.register(TestClassInterceptor);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -172,7 +174,7 @@ describe('Order of activations', () => {
       activations.addActivations(BeforeInterceptor_1);
       activations.addActivations(BeforeInterceptor_2);
       activations.register(TestClassMethodInterceptor);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -186,7 +188,7 @@ describe('Order of activations', () => {
       let container: Container = new Container();
       activations.addActivations(AfterInterceptor_1);
       activations.register(TestAfterInterceptor);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -198,7 +200,7 @@ describe('Order of activations', () => {
       let methodAction: IActivation = null;
       let container: Container = new Container();
       activations.register(TestMultipleClassInterceptorsAttributes);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -210,7 +212,7 @@ describe('Order of activations', () => {
       let methodAction: IActivation = null;
       let container: Container = new Container();
       activations.register(TestMultipleMethodInterceptorsAttributes);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -226,7 +228,7 @@ describe('Order of activations', () => {
       activations.addActivations(ErrorInterceptor);
       activations.addActivations(BeforeInterceptor_3);
       activations.register(TestErrorOrder);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -244,7 +246,7 @@ describe('Order of activations', () => {
       activations.addActivations(BeforeInterceptor_3);
       activations.addActivations(AfterInterceptor_1);
       activations.register(TestAfterInterceptor);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const order = context.getData('order');
@@ -257,7 +259,7 @@ describe('Order of activations', () => {
       let container: Container = new Container();
       let context: DefaultContext = null;
       activations.register(TestRemoveAfterInterceptor);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = getMethod(activations.generateActivations(container), 'method1');
 
       context = new DefaultContext(container, methodAction);
       await methodAction.execute(context);

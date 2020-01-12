@@ -47,7 +47,7 @@ describe('Activations should be able to intercept result', () => {
       activations.addActivations(ArgsInterceptor_2);
       activations.addActivations(ResultInterceptor);
       activations.register(TestClassTwoArgs);
-      methodAction = _.head(activations.generateActivations(container));
+      methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
       const result = context.getResult();
