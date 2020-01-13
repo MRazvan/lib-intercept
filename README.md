@@ -185,14 +185,14 @@ class TestClass {
 }
 
 const generator = new ActivationsGenerator();
+// We can register as many classes as we want, for this example we only have one
 generator.register(TestClass);
-// Create the inversify container
-const container = new Container();
 // Generate the activations
-// We have only one class with one method
-const activation = generator.generateActivations(container)[0];
+// We have only one class with one method however we also have a 'constructor' method
+//  We don't need to check the class name since we only registered one
+const activation = generator.generateActivations(container).find(a => a.method.name === 'myMethod');
 // Create the context of execution
-const context = new DefaultContext(container, activation);
+const context = new DefaultContext(new Container(), activation);
 context.execute().then(() => {
   console.log('RESULT', context.getResult());
 });
@@ -201,6 +201,7 @@ context.execute().then(() => {
 ### Custom Context
 An example of a custom context for integrating with express and passing the request / response objects to interceptors
 ```typescript
+// Either extend or implement a custom IContext
 class HttpContext extends DefaultContext {
   constructor(
     container: Container,
@@ -220,11 +221,25 @@ class HttpContext extends DefaultContext {
   }
 }
 ...
-class MyInterceptor ... {
+class AuthorizationInterceptor ... {
   // Use our HTTP Context in a custom interceptor for example to check for a token
-  public before(ctx: HttpContext): boolean {...}
+  public before(ctx: HttpContext): boolean {
+    if (isNil(ctx.getRequest().headers['authorization'])){
+      return ctx.getResult().setError('Unauthorized');
+      // Or just ** throw new Error('Unauthorized'); ** the library will take care of setting the error
+    }
+    // Process the header and the target method
+    return true;
+  }
 }
-
+// In the request handler
 const ctx = new HttpContext(container, activation, req, res);
-ctx.execute().then(() => res.send(ctx.getResult()));
+ctx.execute().then(() => {
+  // This example does not check for error, it just sends the result as json
+  res.json(ctx.getResult());
+  /*
+    if (ctx.getResult().isError()) res.status(400).send(ctx.getResult().error) // Send an error 
+    else res.json(ctx.getResult().payload) // Send the result
+  */
+});
 ```
