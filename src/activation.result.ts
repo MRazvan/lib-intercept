@@ -7,16 +7,18 @@ export class ActivationResult {
     this.setSuccess(null);
   }
 
-  public setSuccess(payload: any): void {
+  public setSuccess(payload: any): boolean {
     this.success = true;
     this.payload = payload;
     this.error = null;
+    return true;
   }
 
-  public setError(error: any): void {
+  public setError(error: any): boolean {
     this.success = false;
     this.error = error;
     this.payload = null;
+    return false;
   }
 
   public isError(): boolean {
