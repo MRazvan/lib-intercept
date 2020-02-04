@@ -36,6 +36,7 @@ export class Activation implements IActivation {
     ctx.setData('activation_interceptor_stack', interceptorChain);
     let beforeInterceptor: IBeforeActivation = null;
     try {
+      let resultValue = false;
       for (
         activationState.beforeActivationIdx = 0;
         activationState.beforeActivationIdx < this.beforeActivation.length;
@@ -44,12 +45,14 @@ export class Activation implements IActivation {
         beforeInterceptor = this.beforeActivation[activationState.beforeActivationIdx];
         interceptorChain.push(beforeInterceptor.constructor.name);
         const result = beforeInterceptor.before(ctx);
-        let resultValue = false;
+
+        resultValue = false;
         if (result instanceof Promise) {
           resultValue = await result;
         } else {
           resultValue = result;
         }
+
         // We do not continue with the processing
         if (resultValue === false) {
           interceptorChain[interceptorChain.length - 1] += ' - Stop continuation';
@@ -73,10 +76,7 @@ export class Activation implements IActivation {
       interceptorChain.push(afterActivation.constructor.name);
       // We don't care about after activation result
       try {
-        const result = afterActivation.after(ctx);
-        if (result instanceof Promise) {
-          await result;
-        }
+        await afterActivation.after(ctx);
       } catch (err) {
         if (isFunction(onError)) {
           onError(beforeInterceptor, err);

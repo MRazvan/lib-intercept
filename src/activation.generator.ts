@@ -1,4 +1,4 @@
-import { Container, injectable } from 'inversify';
+import { Container, injectable, METADATA_KEY } from 'inversify';
 import { ClassData, MethodData, ReflectHelper } from 'lib-reflect';
 import { forEach, isEmpty, isFunction, isNil } from 'lodash';
 import { Activation } from './activation.execution';
@@ -58,7 +58,7 @@ export class ActivationsGenerator {
     const activations: IActivation[] = [];
     forEach(this._classes, (classData: ClassData) => {
       // Check if the class is decorated with inject
-      if (!Reflect.hasOwnMetadata('inversify:paramtypes', classData.target)) {
+      if (!Reflect.hasOwnMetadata(METADATA_KEY.PARAM_TYPES, classData.target)) {
         injectable()(classData.target);
       }
 

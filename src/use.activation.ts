@@ -1,4 +1,4 @@
-import { AnyDecoratorFactory, checkIfInstanceOf, ClassData, MethodData } from 'lib-reflect';
+import { AnyDecoratorFactory, ClassData, DecoratorType, GetDecoratorType } from 'lib-reflect';
 import { isFunction, isNil } from 'lodash';
 import { IAfterActivation } from './interfaces/i.after.activation';
 import { IBeforeActivation } from './interfaces/i.before.activation';
@@ -12,6 +12,7 @@ export class InterceptorData {
   public target: Function | IAfterActivation | IBeforeActivation;
   public instance: Record<string, any>;
   public type = InterceptorType.Before | InterceptorType.After;
+  public metadata: any;
   public createInstance(): void {
     if (!isNil(this.instance)) {
       return;
@@ -26,26 +27,31 @@ export class InterceptorData {
 
 export const UseActivation = (
   activation: Function | IAfterActivation | IBeforeActivation,
-  type?: InterceptorType
+  type?: InterceptorType,
+  metadata?: any
 ): any =>
-  AnyDecoratorFactory((classData: ClassData, methodOrProp: any) => {
+  AnyDecoratorFactory((classData: ClassData, methodOrProp: any, arg2: any) => {
     const data = new InterceptorData();
     data.target = activation;
     if (!isNil(type)) {
       data.type = type;
     }
-    if (isNil(methodOrProp)) {
-      // Class decorator
-      classData.attributesData.push(data);
-    } else if (checkIfInstanceOf(methodOrProp, MethodData)) {
-      // Method decorator
-      methodOrProp.attributesData.push(data);
-    } else {
-      throw new Error('Invalid usage of the UseActivation decorator.');
+    data.metadata = metadata;
+    // Add the information on attributes data
+    const decoratorType = GetDecoratorType(classData, methodOrProp, arg2);
+    switch (decoratorType) {
+      case DecoratorType.Class:
+        classData.attributesData.push(data);
+        break;
+      case DecoratorType.Method:
+        methodOrProp.attributesData.push(data);
+        break;
+      default:
+        throw new Error('Invalid usage of the UseActivation decorator.');
     }
   });
 
-export const UseBefore = (activation: Function | IBeforeActivation): any =>
-  UseActivation(activation, InterceptorType.Before);
-export const UseAfter = (activation: Function | IAfterActivation): any =>
-  UseActivation(activation, InterceptorType.After);
+export const UseBefore = (activation: Function | IBeforeActivation, metadata?: any): any =>
+  UseActivation(activation, InterceptorType.Before, metadata);
+export const UseAfter = (activation: Function | IAfterActivation, metadata?: any): any =>
+  UseActivation(activation, InterceptorType.After, metadata);
