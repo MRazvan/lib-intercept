@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Container } from "inversify";
-import { ClassData, MethodData, MethodDecoratorFactory } from "lib-reflect";
+import { ClassData, MethodData, MethodDecoratorFactory, ReflectHelper } from "lib-reflect";
 import { ActivationsGenerator, IActivation, IBeforeActivation, IContext, UseActivation } from "../index";
 import { DefaultContext } from "../src/context";
 
@@ -76,4 +76,26 @@ describe('ActivationsGenerator', () => {
       expect(result.success).to.be.false;
       expect(result.error).to.eq('Hello World');
    });
+
+   it('Should call static methods', async () => {
+      class Test {
+         public static myMethod(): string{
+            return 'Hello World';
+         }
+      }
+      ReflectHelper.getOrCreateClassData(Test).build();
+      const activations: ActivationsGenerator = new ActivationsGenerator();
+      let methodAction: IActivation = null;
+      let container: Container = new Container();
+
+      activations.register(Test);
+      methodAction = activations.generateActivations(container)[1];
+
+      let context: DefaultContext = new DefaultContext(container, methodAction);
+      await methodAction.execute(context);
+
+      const result = context.getResult();
+      expect(result.success).to.be.true;
+      expect(result.payload).to.eq('Hello World');
+   });   
 })

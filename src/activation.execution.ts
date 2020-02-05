@@ -16,6 +16,7 @@ class ActivationState {
   public beforeActivationIdx = 0;
   public afterActivationIdx = 0;
 }
+
 export type ErrorCallback = (interceptor: IBeforeActivation | IAfterActivation, err: any) => void;
 export class Activation implements IActivation {
   public class: ClassData;
@@ -27,7 +28,7 @@ export class Activation implements IActivation {
     // Allow the arguments to be set outside of any interceptor
     //    For example set them before we call execute. This is so we can use
     //    the activation outside of an environment using activation chains
-    if (isNil(ctx.getArguments())) {
+    if (isNil(ctx.getArguments()) && this.method.parameters.length) {
       ctx.setArguments(new Array(this.method.parameters.length));
     }
     const interceptorChain: string[] = [];

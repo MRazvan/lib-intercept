@@ -1,13 +1,15 @@
 import { Container, injectable, METADATA_KEY } from 'inversify';
-import { ClassData, MethodData, ReflectHelper } from 'lib-reflect';
+import { ClassData, MethodData, MethodFlags, ReflectHelper } from 'lib-reflect';
 import { forEach, isEmpty, isFunction, isNil } from 'lodash';
 import { Activation } from './activation.execution';
 import { ExecuteActivation } from './activations/execute';
+import { ExecuteActivationStatic } from './activations/execute.static';
 import { TypeParamInterceptor } from './activations/type.param.inject';
+import { kInterceptorSingletonKey } from './attributes/singleton';
+import { InterceptorData, InterceptorType } from './interceptor.data';
 import { IAfterActivation } from './interfaces/i.after.activation';
 import { IBeforeActivation } from './interfaces/i.before.activation';
 import { IActivation } from './interfaces/i.context';
-import { InterceptorData, InterceptorType } from './use.activation';
 
 export class ActivationsGenerator {
   private readonly _classes: ClassData[];
@@ -63,8 +65,13 @@ export class ActivationsGenerator {
       }
 
       if (!container.isBound(classData.target)) {
-        container.bind(classData.target).toSelf();
+        const boundInstance = container.bind(classData.target).toSelf();
+        // Singleton?
+        if (classData.tags[kInterceptorSingletonKey]) {
+          boundInstance.inSingletonScope();
+        }
       }
+
       // For each method on those classes
       forEach(classData.methods, (methodData: MethodData) => {
         const activation = new Activation();
@@ -80,6 +87,10 @@ export class ActivationsGenerator {
     const executeInterceptor = new InterceptorData();
     executeInterceptor.target = ExecuteActivation;
     executeInterceptor.createInstance();
+
+    const executeInterceptorStatic = new InterceptorData();
+    executeInterceptorStatic.target = ExecuteActivationStatic;
+    executeInterceptorStatic.createInstance();
 
     // Injector for Type parameters registered in the container
     const typeInterceptor = new InterceptorData();
@@ -102,8 +113,13 @@ export class ActivationsGenerator {
         this._addActivations(activation, methodActivations.reverse());
       }
       activation.beforeActivation.push(typeInterceptor.instance as IBeforeActivation);
-      // Finally add the execution interceptor
-      activation.beforeActivation.push(executeInterceptor.instance as IBeforeActivation);
+      if (activation.method.flags === MethodFlags.STATIC) {
+        // Finally add the execution interceptor
+        activation.beforeActivation.push(executeInterceptorStatic.instance as IBeforeActivation);
+      } else {
+        // Finally add the execution interceptor
+        activation.beforeActivation.push(executeInterceptor.instance as IBeforeActivation);
+      }
     });
     return activations;
   }
