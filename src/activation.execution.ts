@@ -1,16 +1,8 @@
 import { ClassData, MethodData } from 'lib-reflect';
-import { isFunction, isNil, isString } from 'lodash';
+import { isFunction, isNil } from 'lodash';
 import { IAfterActivation } from './interfaces/i.after.activation';
 import { IBeforeActivation } from './interfaces/i.before.activation';
 import { IActivation, IContext } from './interfaces/i.context';
-
-function getErrorMessage(err: any): string {
-  if (isNil(err)) return err;
-  if (err instanceof Error) return err.message;
-  if (isString(err)) return err;
-  if (isString(err.message)) return err.message;
-  return err;
-}
 
 class ActivationState {
   public beforeActivationIdx = 0;
@@ -28,13 +20,11 @@ export class Activation implements IActivation {
     // Allow the arguments to be set outside of any interceptor
     //    For example set them before we call execute. This is so we can use
     //    the activation outside of an environment using activation chains
-    if (isNil(ctx.getArguments()) && this.method.parameters.length) {
+    if (this.method.parameters.length > 0 && isNil(ctx.getArguments())) {
       ctx.setArguments(new Array(this.method.parameters.length));
     }
-    const interceptorChain: string[] = [];
     const activationState = new ActivationState();
     ctx.setData('activation_activation_state', activationState);
-    ctx.setData('activation_interceptor_stack', interceptorChain);
     let beforeInterceptor: IBeforeActivation = null;
     try {
       let resultValue = false;
@@ -44,7 +34,6 @@ export class Activation implements IActivation {
         ++activationState.beforeActivationIdx
       ) {
         beforeInterceptor = this.beforeActivation[activationState.beforeActivationIdx];
-        interceptorChain.push(beforeInterceptor.constructor.name);
         const result = beforeInterceptor.before(ctx);
 
         resultValue = false;
@@ -56,7 +45,6 @@ export class Activation implements IActivation {
 
         // We do not continue with the processing
         if (resultValue === false) {
-          interceptorChain[interceptorChain.length - 1] += ' - Stop continuation';
           break;
         }
       }
@@ -64,7 +52,6 @@ export class Activation implements IActivation {
       if (isFunction(onError)) {
         onError(beforeInterceptor, err);
       }
-      interceptorChain[interceptorChain.length - 1] += ` - Error: ${getErrorMessage(err)}`;
       ctx.getResult().setError(err);
     }
     let afterActivation: IAfterActivation = null;
@@ -74,7 +61,6 @@ export class Activation implements IActivation {
       activationState.afterActivationIdx--
     ) {
       afterActivation = this.afterActivation[activationState.afterActivationIdx];
-      interceptorChain.push(afterActivation.constructor.name);
       // We don't care about after activation result
       try {
         await afterActivation.after(ctx);
@@ -82,7 +68,6 @@ export class Activation implements IActivation {
         if (isFunction(onError)) {
           onError(beforeInterceptor, err);
         }
-        interceptorChain[interceptorChain.length - 1] += ` - Error: ${getErrorMessage(err)}`;
         ctx.getResult().setError(err);
       }
     }

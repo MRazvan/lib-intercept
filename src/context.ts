@@ -9,7 +9,7 @@ export class DefaultContext implements IContext {
   constructor(private readonly _container: Container, private readonly _activation: IActivation) {
     this._result = new ActivationResult();
     this._data = new Map();
-    this._args = [];
+    this._args = null;
   }
   public execute(): Promise<any> {
     return this._activation.execute(this);
