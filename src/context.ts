@@ -4,11 +4,11 @@ import { IActivation, IContext } from './interfaces/i.context';
 
 export class DefaultContext implements IContext {
   private _result: ActivationResult;
-  private readonly _data: Map<string, any>;
+  private readonly _data: Record<string, any>;
   private _args: any[];
   constructor(private readonly _container: Container, private readonly _activation: IActivation) {
     this._result = new ActivationResult();
-    this._data = new Map();
+    this._data = {};
     this._args = null;
   }
   public execute(): Promise<any> {
@@ -33,12 +33,10 @@ export class DefaultContext implements IContext {
     this._args = args;
   }
   public getData<T>(key: string, defaultVal?: T): T {
-    if (!this._data.has(key)) {
-      return defaultVal;
-    }
-    return this._data.get(key) as T;
+    const val = this._data[key];
+    return val === undefined ? defaultVal : val;
   }
   public setData(key: string, data: any): void {
-    this._data.set(key, data);
+    this._data[key] = data;
   }
 }

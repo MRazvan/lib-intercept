@@ -6,7 +6,7 @@ import { IActivation, IContext } from './interfaces/i.context';
 
 class ActivationState {
   public beforeActivationIdx = 0;
-  public afterActivationIdx = 0;
+  public beforeActivationLength = 0;
 }
 
 export type ErrorCallback = (interceptor: IBeforeActivation | IAfterActivation, err: any) => void;
@@ -24,13 +24,14 @@ export class Activation implements IActivation {
       ctx.setArguments(new Array(this.method.parameters.length));
     }
     const activationState = new ActivationState();
+    activationState.beforeActivationLength = this.beforeActivation.length;
     ctx.setData('activation_activation_state', activationState);
     let beforeInterceptor: IBeforeActivation = null;
     try {
       let resultValue = false;
       for (
         activationState.beforeActivationIdx = 0;
-        activationState.beforeActivationIdx < this.beforeActivation.length;
+        activationState.beforeActivationIdx < activationState.beforeActivationLength;
         ++activationState.beforeActivationIdx
       ) {
         beforeInterceptor = this.beforeActivation[activationState.beforeActivationIdx];
@@ -55,15 +56,14 @@ export class Activation implements IActivation {
       ctx.getResult().setError(err);
     }
     let afterActivation: IAfterActivation = null;
-    for (
-      activationState.afterActivationIdx = this.afterActivation.length - 1;
-      activationState.afterActivationIdx >= 0;
-      activationState.afterActivationIdx--
-    ) {
-      afterActivation = this.afterActivation[activationState.afterActivationIdx];
+    for (let idx = this.afterActivation.length - 1; idx >= 0; idx--) {
+      afterActivation = this.afterActivation[idx];
       // We don't care about after activation result
       try {
-        await afterActivation.after(ctx);
+        const result = afterActivation.after(ctx);
+        if (result instanceof Promise) {
+          await result;
+        }
       } catch (err) {
         if (isFunction(onError)) {
           onError(beforeInterceptor, err);
@@ -80,6 +80,7 @@ export class Activation implements IActivation {
       const actionData = context.getData<ActivationState>('activation_activation_state');
       this.beforeActivation.splice(idx, 1);
       actionData.beforeActivationIdx--;
+      actionData.beforeActivationLength--;
     }
   }
 
