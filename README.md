@@ -94,24 +94,34 @@ interface IActivation {
 }
 
 interface IContext {
+  // error payload as set by setError
+  error: any;
+  // result payload as set by setSuccess
+  payload: any;
+  // Counter to track the execution point in before interceptors
+  //  We need this on the context since the interceptors can remnove themselfs from the chain
+  beforeActivationIdx: number;
+  // The number of before interceptors that we need to execute
+  beforeActivationLength: number;
   // Execute the activation (wrapper over activation.execute(ctx))
   execute(): Promise<any>;
   // Get the activation from this execution context
   getActivation(): IActivation;
+  // Set the payload / error and make success as true 
+  setSuccess(payload: any): boolean;
+  // Set the error / payload = null and make success as false
+  setError(error: any): boolean;
+  // Indicate if we have an error or not
+  isSuccess(): boolean;
   // Get the DI container
   getContainer(): Container;
-  // Get the result of the execution
-  getResult(): ActivationResult;
-  // Set the result of the execution
-  setResult(res: ActivationResult): void;
   // Get the arguments used to call the target method
   getArguments(): any[];
   // Set the arguments used to call the target method
   setArguments(args: any[]): void;
   // Dictionary to set custom data on this context
   getData<T>(key: string, defaultVal?: T): T;
-  setData(key: string, data: any): void;
-}
+  setData(key: string, data: any): void;}
 ```
 
 ### Order of interceptor execution withing a group
@@ -212,7 +222,7 @@ const activation = generator.generateActivations(container).find(a => a.method.n
 // Create the context of execution
 const context = new DefaultContext(new Container(), activation);
 context.execute().then(() => {
-  console.log('RESULT', context.getResult());
+  console.log('RESULT', context.payload);
 });
 ```
 
@@ -243,7 +253,7 @@ class AuthorizationInterceptor ... {
   // Use our HTTP Context in a custom interceptor for example to check for a token
   public before(ctx: HttpContext): boolean {
     if (isNil(ctx.getRequest().headers['authorization'])){
-      return ctx.getResult().setError('Unauthorized');
+      return ctx.setError('Unauthorized');
       // Or just ** throw new Error('Unauthorized'); ** the library will take care of setting the error
     }
     // Process the header and the target method
@@ -254,10 +264,10 @@ class AuthorizationInterceptor ... {
 const ctx = new HttpContext(container, activation, req, res);
 ctx.execute().then(() => {
   // This example does not check for error, it just sends the result as json
-  res.json(ctx.getResult());
+  res.json(ctx.payload);
   /*
-    if (ctx.getResult().isError()) res.status(400).send(ctx.getResult().error) // Send an error 
-    else res.json(ctx.getResult().payload) // Send the result
+    if (!ctx.isSuccess()) res.status(400).send(ctx.error) // Send an error 
+    else res.json(ctx.payload) // Send the result
   */
 });
 ```
