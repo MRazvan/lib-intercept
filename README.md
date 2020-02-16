@@ -7,7 +7,10 @@
 <img src="https://img.shields.io/github/license/MRazvan/lib-intercept?style=flat-square">
 </p>
 
-Library for executing reflected [ClassData](https://github.com/MRazvan/lib-reflect#ClassData) and allowing intercepting of a method execution and result.
+Library for executing reflected [ClassData](https://github.com/MRazvan/lib-reflect#ClassData) and allowing intercepting of a method execution and result. 
+The interceptors can be optimized away on methods that do not need them depending on how the interceptors are implemented.
+- At startup (activation generation) - IConfiguration will be executed at Activation generation on interceptors that implement it 
+- At runtime - On Before / After handlers can remove the interceptor by using methods on the activation object.
 
 It is using the [lib-reflect](https://github.com/MRazvan/lib-reflect) library in order to generate the needed information for executing a method on a class.
 
@@ -53,6 +56,15 @@ The **IContext** will contain information regarding the execution of the target 
 
 
 ```typescript
+enum KeepActivation {
+  NONE = 0x00,
+  BEFORE = 0x01,
+  AFTER = 0x02
+}
+
+interface IConfigureActivation {
+  configure(activation: IActivation): KeepActivation;
+}
 
 interface IAfterActivation {
   after(context: IContext): Promise<void> | void;
@@ -67,12 +79,18 @@ interface IActivation {
   class: ClassData;
   // The reflection information for the target method
   method: MethodData;
+  // Before execution activations
+  beforeActivation: IBeforeActivation[];
+  // After execution activations
+  afterActivation: IAfterActivation[];
   // Execute this activation
   execute(ctx: IContext, onError?: ActivationErrorCallback): Promise<any>;
   // Remove a before interceptor from the chain of this method
   removeBeforeActivation(activation: IBeforeActivation, context: IContext): void;
   // Remove an after interceptor from the chain of this method
   removeAfterActivation(activation: IAfterActivation, context: IContext): void;
+  // Any data specific for this activation
+  data: Record<string, any>;
 }
 
 interface IContext {

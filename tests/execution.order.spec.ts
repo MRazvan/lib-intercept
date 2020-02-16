@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { Container } from "inversify";
 import { ClassData, MethodData, MethodDecoratorFactory } from "lib-reflect";
 import { ActivationsGenerator, DefaultContext, IActivation, IAfterActivation, IBeforeActivation, IContext, UseActivation } from "../index";
+import { IConfigureActivation, KeepActivation } from "../src/interfaces/i.configure.activation";
 import _ = require("lodash");
 
 class BeforeInterceptor_1 implements IBeforeActivation {
@@ -270,5 +271,104 @@ describe('Order of activations', () => {
       await methodAction.execute(context);
       order = context.getData('order');
       expect(order).to.deep.eq(['AfterMethodInterceptor_3', 'AfterMethodInterceptor_1']);
+   });
+   describe('Should use configuration if available', () => {
+      it('respect NONE', async () => {
+         class TestActivator implements IConfigureActivation, IBeforeActivation, IAfterActivation {
+            before(context: IContext): boolean | Promise<boolean> {
+               throw new Error("Method not implemented.");
+            }
+            after(context: IContext): void | Promise<void> {
+               throw new Error("Method not implemented.");
+            }
+            configure(activation: IActivation): KeepActivation {
+               return KeepActivation.NONE;
+            }
+         }
+
+         class Test {
+            @MethodAttr()
+            public method1(){}
+         }
+         const activations: ActivationsGenerator = new ActivationsGenerator();
+         let container: Container = new Container();
+         activations.register(Test);
+         activations.addActivations(TestActivator);
+         const methodAction = getMethod(activations.generateActivations(container), 'method1');
+         expect(methodAction.afterActivation.length).to.eq(0);
+         expect(methodAction.beforeActivation.length).to.eq(2);
+      });   
+      it('respect BEFORE', async () => {
+         class TestActivator implements IConfigureActivation, IBeforeActivation, IAfterActivation {
+            before(context: IContext): boolean | Promise<boolean> {
+               throw new Error("Method not implemented.");
+            }
+            after(context: IContext): void | Promise<void> {
+               throw new Error("Method not implemented.");
+            }
+            configure(activation: IActivation): KeepActivation {
+               return KeepActivation.BEFORE;
+            }
+         }
+         class Test {
+            @MethodAttr()
+            public method1(){}
+         }
+         const activations: ActivationsGenerator = new ActivationsGenerator();
+         let container: Container = new Container();
+         activations.register(Test);
+         activations.addActivations(TestActivator);
+         const methodAction = getMethod(activations.generateActivations(container), 'method1');
+         expect(methodAction.afterActivation.length).to.eq(0);
+         expect(methodAction.beforeActivation.length).to.eq(3);
+      });
+      it('respect AFTER', async () => {
+         class TestActivator implements IConfigureActivation, IBeforeActivation, IAfterActivation {
+            before(context: IContext): boolean | Promise<boolean> {
+               throw new Error("Method not implemented.");
+            }
+            after(context: IContext): void | Promise<void> {
+               throw new Error("Method not implemented.");
+            }
+            configure(activation: IActivation): KeepActivation {
+               return KeepActivation.AFTER;
+            }
+         }
+         class Test {
+            @MethodAttr()
+            public method1(){}
+         }
+         const activations: ActivationsGenerator = new ActivationsGenerator();
+         let container: Container = new Container();
+         activations.register(Test);
+         activations.addActivations(TestActivator);
+         const methodAction = getMethod(activations.generateActivations(container), 'method1');
+         expect(methodAction.afterActivation.length).to.eq(1);
+         expect(methodAction.beforeActivation.length).to.eq(2);
+      });     
+      it('respect BEFORE and AFTER', async () => {
+         class TestActivator implements IConfigureActivation, IBeforeActivation, IAfterActivation {
+            before(context: IContext): boolean | Promise<boolean> {
+               throw new Error("Method not implemented.");
+            }
+            after(context: IContext): void | Promise<void> {
+               throw new Error("Method not implemented.");
+            }
+            configure(activation: IActivation): KeepActivation {
+               return KeepActivation.BEFORE | KeepActivation.AFTER;
+            }
+         }
+         class Test {
+            @MethodAttr()
+            public method1(){}
+         }
+         const activations: ActivationsGenerator = new ActivationsGenerator();
+         let container: Container = new Container();
+         activations.register(Test);
+         activations.addActivations(TestActivator);
+         const methodAction = getMethod(activations.generateActivations(container), 'method1');
+         expect(methodAction.afterActivation.length).to.eq(1);
+         expect(methodAction.beforeActivation.length).to.eq(3);
+      });             
    });
 })

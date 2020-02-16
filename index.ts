@@ -7,5 +7,6 @@ export * from './src/context';
 export * from './src/interceptor.data';
 export * from './src/interfaces/i.after.activation';
 export * from './src/interfaces/i.before.activation';
+export * from './src/interfaces/i.configure.activation';
 export * from './src/interfaces/i.context';
 

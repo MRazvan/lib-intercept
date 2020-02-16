@@ -22,10 +22,9 @@ class ArgsInterceptor_2 implements IBeforeActivation {
 
 class ResultInterceptor implements IAfterActivation {
    after(context: IContext): Promise<void> {
-      const result = context.getResult();
-      result.success = false;
-      result.payload = [...result.payload, 'ResultInterceptor'];
-      result.error = 'SomeError';
+      const temp = context.payload;
+      context.setError('SomeError');
+      context.payload = [...temp, 'ResultInterceptor'];
       return Promise.resolve();
    }
 }
@@ -50,9 +49,8 @@ describe('Activations should be able to intercept result', () => {
       methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
-      const result = context.getResult();
-      expect(result.success).to.eq(false);
-      expect(result.error).to.eq('SomeError');
-      expect(result.payload).deep.eq(['Arg_0', 'Arg_1', 'ResultInterceptor'])
+      expect(context.isSuccess()).to.eq(false);
+      expect(context.error).to.eq('SomeError');
+      expect(context.payload).deep.eq(['Arg_0', 'Arg_1', 'ResultInterceptor'])
    });
 })

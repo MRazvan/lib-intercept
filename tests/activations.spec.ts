@@ -56,9 +56,8 @@ describe('ActivationsGenerator', () => {
       methodAction = _.head(activations.generateActivations(container));
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
-      const result = context.getResult();
-      expect(result.success).to.be.false;
-      expect(result.error).to.eq('Hello World');
+      expect(context.isSuccess()).to.be.false;
+      expect(context.error).to.eq('Hello World');
    });
 
    it('Should set the result success as false and error message when handler throws exception', async () => {
@@ -72,9 +71,8 @@ describe('ActivationsGenerator', () => {
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
 
-      const result = context.getResult();
-      expect(result.success).to.be.false;
-      expect(result.error).to.eq('Hello World');
+      expect(context.isSuccess()).to.be.false;
+      expect(context.error).to.eq('Hello World');
    });
 
    it('Should call static methods', async () => {
@@ -94,8 +92,7 @@ describe('ActivationsGenerator', () => {
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
 
-      const result = context.getResult();
-      expect(result.success).to.be.true;
-      expect(result.payload).to.eq('Hello World');
+      expect(context.isSuccess()).to.be.true;
+      expect(context.payload).to.eq('Hello World');
    });   
 })
