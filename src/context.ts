@@ -1,16 +1,47 @@
 import { Container } from 'inversify';
-import { ActivationResult } from './activation.result';
 import { IActivation, IContext } from './interfaces/i.context';
 
 export class DefaultContext implements IContext {
-  private _result: ActivationResult;
-  private readonly _data: Map<string, any>;
+  private _data: Record<string, any>;
   private _args: any[];
+  private _success: boolean;
+  public error: any;
+  public payload: any;
+
+  // IActivation
+  public beforeActivationIdx = 0;
+  public beforeActivationLength = 0;
+
   constructor(private readonly _container: Container, private readonly _activation: IActivation) {
-    this._result = new ActivationResult();
-    this._data = new Map();
-    this._args = [];
+    this.error = null;
+    this.payload = null;
+    this._success = true;
+    this._data = null;
+    this._args = null;
   }
+
+  public setSuccess(payload: any): boolean {
+    this._success = true;
+    this.payload = payload;
+    this.error = null;
+    return true;
+  }
+
+  public setError(error: any): boolean {
+    this._success = false;
+    this.error = error;
+    this.payload = null;
+    return false;
+  }
+
+  public isError(): boolean {
+    return !this.isSuccess();
+  }
+
+  public isSuccess(): boolean {
+    return this._success === true;
+  }
+
   public execute(): Promise<any> {
     return this._activation.execute(this);
   }
@@ -20,12 +51,6 @@ export class DefaultContext implements IContext {
   public getContainer(): Container {
     return this._container;
   }
-  public getResult(): ActivationResult {
-    return this._result;
-  }
-  public setResult(res: ActivationResult): void {
-    this._result = res;
-  }
   public getArguments(): any[] {
     return this._args;
   }
@@ -33,12 +58,16 @@ export class DefaultContext implements IContext {
     this._args = args;
   }
   public getData<T>(key: string, defaultVal?: T): T {
-    if (!this._data.has(key)) {
+    if (this._data === null) {
       return defaultVal;
     }
-    return this._data.get(key) as T;
+    const val = this._data[key];
+    return val === undefined ? defaultVal : val;
   }
   public setData(key: string, data: any): void {
-    this._data.set(key, data);
+    if (this._data === null) {
+      this._data = {};
+    }
+    this._data[key] = data;
   }
 }

@@ -45,8 +45,7 @@ describe('Activations should be able to populate argumets', () => {
       methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
-      const result = context.getResult().payload;
-      expect(result).to.be.eq('Arg_0');
+      expect(context.payload).to.be.eq('Arg_0');
    });
 
    it('Should populate two arguments', async () => {
@@ -59,7 +58,6 @@ describe('Activations should be able to populate argumets', () => {
       methodAction = activations.generateActivations(container).find(a => a.method.name === 'method1');
       let context: DefaultContext = new DefaultContext(container, methodAction);
       await methodAction.execute(context);
-      const result = context.getResult().payload;
-      expect(result).to.deep.eq(['Arg_0', 'Arg_1']);
+      expect(context.payload).to.deep.eq(['Arg_0', 'Arg_1']);
    });
 })

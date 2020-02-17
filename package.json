@@ -1,6 +1,6 @@
 {
   "name": "lib-intercept",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Library for chaining method executions together and providing a context of execution.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,6 +10,7 @@
     "start": "node ./dist/index.js --dev",
     "start:debug": "node --inspect-brk=9229 ./dist/index.js --dev",
     "test": "node ./node_modules/mocha/bin/mocha -r ./node_modules/ts-node/register/index.js ./tests/**/*.spec.ts --exit",
+    "test:debug": "node ./node_modules/mocha/bin/mocha --inspect-brk -r ./node_modules/ts-node/register/index.js ./tests/**/*.spec.ts --exit",
     "coverage:test": "node ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov npm run test",
     "tc:test": "node ./node_modules/mocha/bin/mocha --reporter mocha-teamcity-reporter -r ./node_modules/ts-node/register/index.js ./tests/**/*.spec.ts --exit",
     "nyc:test": "node ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=teamcity npm run tc:test",
@@ -33,7 +34,7 @@
   "homepage": "https://github.com/MRazvan/lib-intercept#readme",
   "dependencies": {
     "inversify": "^5.0.1",
-    "lib-reflect": "^1.1.1",
+    "lib-reflect": "^1.2.2",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
