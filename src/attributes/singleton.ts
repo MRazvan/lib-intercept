@@ -2,7 +2,8 @@ import { ClassData, ClassDecoratorFactory } from 'lib-reflect';
 
 export const kInterceptorSingletonKey = 'lib:intercept:singleton';
 
-export const Singleton = (): ClassDecorator =>
-  ClassDecoratorFactory((cd: ClassData) => {
+export function Singleton(): ClassDecorator {
+  return ClassDecoratorFactory((cd: ClassData) => {
     cd.tags[kInterceptorSingletonKey] = true;
   });
+}

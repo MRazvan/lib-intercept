@@ -4,12 +4,12 @@ import { InterceptorData, InterceptorType } from '../interceptor.data';
 import { IAfterActivation } from '../interfaces/i.after.activation';
 import { IBeforeActivation } from '../interfaces/i.before.activation';
 
-export const UseActivation = (
+export function UseActivation(
   activation: Function | IAfterActivation | IBeforeActivation,
   type?: InterceptorType,
   metadata?: any
-): any =>
-  AnyDecoratorFactory((classData: ClassData, methodOrProp: any, arg2: any) => {
+): any {
+  return AnyDecoratorFactory((classData: ClassData, methodOrProp: any, arg2: any) => {
     const data = new InterceptorData();
     data.target = activation;
     if (!isNil(type)) {
@@ -29,8 +29,12 @@ export const UseActivation = (
         throw new Error('Invalid usage of the UseActivation decorator.');
     }
   });
+}
 
-export const UseBefore = (activation: Function | IBeforeActivation, metadata?: any): any =>
-  UseActivation(activation, InterceptorType.Before, metadata);
-export const UseAfter = (activation: Function | IAfterActivation, metadata?: any): any =>
-  UseActivation(activation, InterceptorType.After, metadata);
+export function UseBefore(activation: Function | IBeforeActivation, metadata?: any): any {
+  return UseActivation(activation, InterceptorType.Before, metadata);
+}
+
+export function UseAfter(activation: Function | IAfterActivation, metadata?: any): any {
+  return UseActivation(activation, InterceptorType.After, metadata);
+}
