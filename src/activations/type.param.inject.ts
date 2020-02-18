@@ -9,7 +9,7 @@ export class TypeParamInterceptor implements IBeforeActivation {
     const args = context.getArguments();
     let hasParams = false;
     activationInfo.method.parameters.forEach((param: ParameterData) => {
-      if (container && container.isBound(param.type)) {
+      if (container && param.type && container.isBound(param.type)) {
         hasParams = true;
         args[param.idx] = container.get(param.type);
       }
